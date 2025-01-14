@@ -1,11 +1,9 @@
 {
-	"required": true,
-	"package": "art.ginzburg.maxlevelinfo.mixin.client",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"ExampleClientMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	}
+  "required": true,
+  "package": "art.ginzburg.maxlevelinfo.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["EnchantmentMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

@@ -1,41 +1,33 @@
 {
-	"schemaVersion": 1,
-	"id": "max-level-info",
-	"version": "${version}",
-	"name": "Max Level Info",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/max-level-info/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"art.ginzburg.maxlevelinfo.MaxLevelInfo"
-		],
-		"client": [
-			"art.ginzburg.maxlevelinfo.MaxLevelInfoClient"
-		]
-	},
-	"mixins": [
-		"max-level-info.mixins.json",
-		{
-			"config": "max-level-info.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.16.10",
-		"minecraft": "~1.21.3",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
-	}
+  "schemaVersion": 1,
+  "id": "max-level-info",
+  "version": "${version}",
+  "name": "Max Level Info",
+  "description": "Shows max enchantment level (e.g. Sharpness II / V)",
+  "authors": ["artginzburg"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/max-level-info",
+    "sources": "https://github.com/artginzburg/max-level-info",
+    "issues": "https://github.com/artginzburg/max-level-info/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/max-level-info/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": ["art.ginzburg.maxlevelinfo.MaxLevelInfo"],
+    "client": ["art.ginzburg.maxlevelinfo.MaxLevelInfoClient"]
+  },
+  "mixins": [
+    "max-level-info.mixins.json",
+    {
+      "config": "max-level-info.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.10",
+    "minecraft": "~1.21.3",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
 }
