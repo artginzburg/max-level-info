@@ -1,8 +1,0 @@
-{
-  "required": true,
-  "package": "art.ginzburg.maxlevelinfo.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "injectors": {
-    "defaultRequire": 1
-  }
-}

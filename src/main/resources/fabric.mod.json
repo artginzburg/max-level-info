@@ -18,7 +18,6 @@
     "client": ["art.ginzburg.maxlevelinfo.MaxLevelInfoClient"]
   },
   "mixins": [
-    "max-level-info.mixins.json",
     {
       "config": "max-level-info.client.mixins.json",
       "environment": "client"
