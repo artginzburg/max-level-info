@@ -64,7 +64,15 @@ public class PotionContentsComponentMixin {
     String potionOriginalName = potionOriginal.getBaseName();
     String possiblePotionLongKey = "LONG_" + potionOriginalName.toUpperCase(); // "LONG_NIGHT_VISION"
 
-    System.out.println("Potion original!!!: ".concat(possiblePotionLongKey));
+    // Fetch the potion from the Potions class
+    RegistryEntry<Potion> potionLongVersion = null;
+    try {
+      // Use reflection to get the potion object from Potions class
+      potionLongVersion = (RegistryEntry<Potion>) Potions.class.getDeclaredField(possiblePotionLongKey)
+          .get(null);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      // No matching field in Potions class, or failed to access it
+    }
 
     List<Pair<RegistryEntry<EntityAttribute>, EntityAttributeModifier>> list = Lists.newArrayList();
     boolean isEmpty = true;
@@ -73,8 +81,6 @@ public class PotionContentsComponentMixin {
       isEmpty = false;
       MutableText effectText = Text.translatable(effect.getTranslationKey());
       RegistryEntry<StatusEffect> registryEntry = effect.getEffectType();
-
-      System.out.println("EFF TYPE!: ".concat(registryEntry.getIdAsString()));
 
       registryEntry.value().forEachAttributeModifier(effect.getAmplifier(),
           (attribute, modifier) -> list.add(new Pair<>(attribute, modifier)));
@@ -87,35 +93,19 @@ public class PotionContentsComponentMixin {
       if (!effect.isDurationBelow(20)) {
         Text durationText = StatusEffectUtil.getDurationText(effect, durationMultiplier, tickRate);
 
-        // Get the potion's ID and create the possible "LONG_" key
-        // String registryEntryId = registryEntry.getIdAsString(); //
-        // "minecraft:night_vision"
-
-        // Fetch the potion from the Potions class
-        RegistryEntry<Potion> potionLongVersion = null;
-        try {
-          // Use reflection to get the potion object from Potions class
-          potionLongVersion = (RegistryEntry<Potion>) Potions.class.getDeclaredField(possiblePotionLongKey)
-              .get(Potion.class); // Access
-          // static
-          // field
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-          // No matching field in Potions class, or failed to access it
-        }
-
         // If we have a potion, check its effects
         if (potionLongVersion != null) {
           boolean isProlonged = false;
-          for (StatusEffectInstance potionEffect : potionLongVersion.value().getEffects()) {
-            if (potionEffect.getEffectType() == effect.getEffectType()
-                && potionEffect.getDuration() == effect.getDuration()) {
+          for (StatusEffectInstance potionLongEffect : potionLongVersion.value().getEffects()) {
+            if (potionLongEffect.getEffectType() == effect.getEffectType()
+                && potionLongEffect.getDuration() == effect.getDuration()) {
               isProlonged = true;
               break; // No need to check more effects
             }
           }
 
           if (isProlonged) {
-            effectText = Text.literal(effectText.getString() + "+"); // Add "+" if prolonged
+            effectText.append(Text.literal("+"));
           }
         }
 
