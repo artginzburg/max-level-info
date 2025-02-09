@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,6 +19,8 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffectUtil;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.Potions;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import net.minecraft.text.MutableText;
@@ -44,6 +47,25 @@ public class PotionContentsComponentMixin {
       e.printStackTrace();
     }
 
+    // Access the PotionContentsComponent's potion field
+    PotionContentsComponent potionContentsComponent = (PotionContentsComponent) (Object) this;
+
+    // Retrieve the Optional<RegistryEntry<Potion>> and unwrap it safely
+    Optional<RegistryEntry<Potion>> potionOptional = potionContentsComponent.potion();
+
+    if (potionOptional.isEmpty()) {
+      return; // No potion, exit early
+    }
+
+    // Get the actual Potion from the RegistryEntry
+    RegistryEntry<Potion> potionRegistryEntry = potionOptional.get();
+    Potion potionOriginal = potionRegistryEntry.value();
+
+    String potionOriginalName = potionOriginal.getBaseName();
+    String possiblePotionLongKey = "LONG_" + potionOriginalName.toUpperCase(); // "LONG_NIGHT_VISION"
+
+    System.out.println("Potion original!!!: ".concat(possiblePotionLongKey));
+
     List<Pair<RegistryEntry<EntityAttribute>, EntityAttributeModifier>> list = Lists.newArrayList();
     boolean isEmpty = true;
 
@@ -51,6 +73,8 @@ public class PotionContentsComponentMixin {
       isEmpty = false;
       MutableText effectText = Text.translatable(effect.getTranslationKey());
       RegistryEntry<StatusEffect> registryEntry = effect.getEffectType();
+
+      System.out.println("EFF TYPE!: ".concat(registryEntry.getIdAsString()));
 
       registryEntry.value().forEachAttributeModifier(effect.getAmplifier(),
           (attribute, modifier) -> list.add(new Pair<>(attribute, modifier)));
@@ -61,12 +85,38 @@ public class PotionContentsComponentMixin {
       }
 
       if (!effect.isDurationBelow(20)) {
-        int durationTicks = effect.getDuration();
         Text durationText = StatusEffectUtil.getDurationText(effect, durationMultiplier, tickRate);
 
-        // ✅ Add "+" if duration is more than 3 minutes (3600 ticks)
-        if (durationTicks > 3600) {
-          effectText = Text.literal(effectText.getString() + "+");
+        // Get the potion's ID and create the possible "LONG_" key
+        // String registryEntryId = registryEntry.getIdAsString(); //
+        // "minecraft:night_vision"
+
+        // Fetch the potion from the Potions class
+        RegistryEntry<Potion> potionLongVersion = null;
+        try {
+          // Use reflection to get the potion object from Potions class
+          potionLongVersion = (RegistryEntry<Potion>) Potions.class.getDeclaredField(possiblePotionLongKey)
+              .get(Potion.class); // Access
+          // static
+          // field
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+          // No matching field in Potions class, or failed to access it
+        }
+
+        // If we have a potion, check its effects
+        if (potionLongVersion != null) {
+          boolean isProlonged = false;
+          for (StatusEffectInstance potionEffect : potionLongVersion.value().getEffects()) {
+            if (potionEffect.getEffectType() == effect.getEffectType()
+                && potionEffect.getDuration() == effect.getDuration()) {
+              isProlonged = true;
+              break; // No need to check more effects
+            }
+          }
+
+          if (isProlonged) {
+            effectText = Text.literal(effectText.getString() + "+"); // Add "+" if prolonged
+          }
         }
 
         effectText = Text.translatable("potion.withDuration", effectText, durationText);
