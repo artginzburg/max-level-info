@@ -2,7 +2,7 @@
   "required": true,
   "package": "art.ginzburg.maxlevelinfo.mixin.client",
   "compatibilityLevel": "JAVA_21",
-  "client": ["EnchantmentMixin"],
+  "client": ["EnchantmentMixin", "PotionContentsComponentMixin"],
   "injectors": {
     "defaultRequire": 1
   }
