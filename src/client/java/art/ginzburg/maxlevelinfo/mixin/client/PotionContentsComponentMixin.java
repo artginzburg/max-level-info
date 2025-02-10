@@ -30,6 +30,7 @@ import net.minecraft.util.Formatting;
 @Mixin(PotionContentsComponent.class)
 public class PotionContentsComponentMixin {
 
+  // TODO implement Bad Omen (e.g. I / V, II / V instead of I, II)
   @SuppressWarnings("unchecked")
   @Inject(method = "buildTooltip", at = @At("HEAD"), cancellable = true)
   private void modifyPotionTooltip(
@@ -74,6 +75,17 @@ public class PotionContentsComponentMixin {
       // No matching field in Potions class, or failed to access it
     }
 
+    String possiblePotionStrongKey = "STRONG_" +
+        potionOriginalName.toUpperCase();
+
+    RegistryEntry<Potion> potionStrongVersion = null;
+    try {
+      potionStrongVersion = (RegistryEntry<Potion>) Potions.class.getDeclaredField(possiblePotionStrongKey)
+          .get(null);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      // No matching field in Potions class, or failed to access it
+    }
+
     List<Pair<RegistryEntry<EntityAttribute>, EntityAttributeModifier>> list = Lists.newArrayList();
     boolean isEmpty = true;
 
@@ -85,29 +97,42 @@ public class PotionContentsComponentMixin {
       registryEntry.value().forEachAttributeModifier(effect.getAmplifier(),
           (attribute, modifier) -> list.add(new Pair<>(attribute, modifier)));
 
+      // If we have a potion, check its effects
+      if (potionLongVersion != null) {
+        boolean isProlonged = false;
+        for (StatusEffectInstance potionLongEffect : potionLongVersion.value().getEffects()) {
+          if (potionLongEffect.getEffectType() == effect.getEffectType()
+              && potionLongEffect.getDuration() == effect.getDuration()) {
+            isProlonged = true;
+            break; // No need to check more effects
+          }
+        }
+
+        effectText.append(Text.literal(isProlonged ? "+" : "-"));
+      }
+
       if (effect.getAmplifier() > 0) {
         effectText = Text.translatable("potion.withAmplifier", effectText,
             Text.translatable("potion.potency." + effect.getAmplifier()));
       }
 
-      if (!effect.isDurationBelow(20)) {
-        Text durationText = StatusEffectUtil.getDurationText(effect, durationMultiplier, tickRate);
-
-        // If we have a potion, check its effects
-        if (potionLongVersion != null) {
-          boolean isProlonged = false;
-          for (StatusEffectInstance potionLongEffect : potionLongVersion.value().getEffects()) {
-            if (potionLongEffect.getEffectType() == effect.getEffectType()
-                && potionLongEffect.getDuration() == effect.getDuration()) {
-              isProlonged = true;
-              break; // No need to check more effects
-            }
-          }
-
-          if (isProlonged) {
-            effectText.append(Text.literal("+"));
+      if (potionStrongVersion != null) {
+        boolean isStrong = false;
+        for (StatusEffectInstance potionStrongEffect : potionStrongVersion.value().getEffects()) {
+          if (potionStrongEffect.getEffectType() == effect.getEffectType()
+              && potionStrongEffect.getAmplifier() == effect.getAmplifier()) {
+            isStrong = true;
+            break;
           }
         }
+
+        if (!isStrong && effect.getAmplifier() == 0) {
+          effectText.append(Text.literal(" I"));
+        }
+      }
+
+      if (!effect.isDurationBelow(20)) {
+        Text durationText = StatusEffectUtil.getDurationText(effect, durationMultiplier, tickRate);
 
         effectText = Text.translatable("potion.withDuration", effectText, durationText);
       }
