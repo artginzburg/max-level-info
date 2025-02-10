@@ -12,7 +12,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Desc;
 
+import net.minecraft.component.type.OminousBottleAmplifierComponent;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -30,12 +32,15 @@ import net.minecraft.util.Formatting;
 @Mixin(PotionContentsComponent.class)
 public class PotionContentsComponentMixin {
 
-  // TODO implement Bad Omen (e.g. I / V, II / V instead of I, II)
   @SuppressWarnings("unchecked")
-  @Inject(method = "buildTooltip", at = @At("HEAD"), cancellable = true)
-  private void modifyPotionTooltip(
+  @Inject(target = @Desc( //
+      value = "buildTooltip", //
+      args = { Consumer.class, float.class, float.class } //
+  ), //
+      at = @At("HEAD"), cancellable = true //
+  )
+  private void overrideBuildTooltip(
       Consumer<Text> textConsumer, float durationMultiplier, float tickRate, CallbackInfo ci) {
-
     Iterable<StatusEffectInstance> effects = List.of(); // Default empty
 
     // Fetch the effects by calling getEffects() reflectively
@@ -63,6 +68,39 @@ public class PotionContentsComponentMixin {
     Potion potionOriginal = potionRegistryEntry.value();
 
     String potionOriginalName = potionOriginal.getBaseName();
+
+    modifyBasicPotionTooltip(effects, textConsumer, durationMultiplier, tickRate, ci, potionOriginalName, false);
+  }
+
+  /**
+   * Gets called for non-standard potions, such as Ominous Bottle or Suspicious
+   * Stew
+   */
+  @Inject(target = @Desc(value = "buildTooltip", args = { Iterable.class,
+      Consumer.class, float.class, float.class }), at = @At("HEAD"), cancellable = true)
+  private static void overrideStaticBuildTooltip(Iterable<StatusEffectInstance> effects,
+      Consumer<Text> textConsumer,
+      float durationMultiplier, float tickRate, CallbackInfo ci) {
+
+    boolean isBadOmen = false;
+    for (StatusEffectInstance effect : effects) {
+      if (effect.getTranslationKey().equalsIgnoreCase("effect.minecraft.bad_omen")) {
+        isBadOmen = true;
+        break;
+      }
+    }
+
+    if (isBadOmen) {
+      ci.cancel();
+      modifyBasicPotionTooltip(effects, textConsumer, durationMultiplier, tickRate, ci, "", isBadOmen);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static void modifyBasicPotionTooltip(Iterable<StatusEffectInstance> effects,
+      Consumer<Text> textConsumer,
+      float durationMultiplier, float tickRate, CallbackInfo ci, String potionOriginalName, boolean isBadOmen) {
+
     String possiblePotionLongKey = "LONG_" + potionOriginalName.toUpperCase(); // "LONG_NIGHT_VISION"
 
     // Fetch the potion from the Potions class
@@ -114,6 +152,18 @@ public class PotionContentsComponentMixin {
       if (effect.getAmplifier() > 0) {
         effectText = Text.translatable("potion.withAmplifier", effectText,
             Text.translatable("potion.potency." + effect.getAmplifier()));
+      }
+
+      if (isBadOmen) {
+        if (effect.getAmplifier() == 0) {
+          effectText.append(Text.literal(" I"));
+        }
+
+        int maxLevel = OminousBottleAmplifierComponent.MAX_VALUE;
+
+        if (effect.getAmplifier() < maxLevel) {
+          effectText.append(Text.literal(" / ")).append(Text.translatable("potion.potency." + maxLevel));
+        }
       }
 
       if (potionStrongVersion != null) {
