@@ -57,9 +57,8 @@ public class PotionUtils {
     public boolean equals(Object obj) {
       if (this == obj)
         return true;
-      if (!(obj instanceof StatusEffectKey))
+      if (!(obj instanceof StatusEffectKey other))
         return false;
-      StatusEffectKey other = (StatusEffectKey) obj;
       return effectId.equalsIgnoreCase(other.effectId);
     }
 

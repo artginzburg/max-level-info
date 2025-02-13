@@ -25,7 +25,7 @@ public class StatusEffectsDisplayMixin {
 
     List<Text> siblings = cir.getReturnValue().getSiblings();
 
-    if (maxAmplifier > 0 && statusEffect.getAmplifier() == 0) {
+    if (statusEffect.getAmplifier() == 0) {
       siblings.add(ScreenTexts.SPACE);
       siblings.add(Text.translatable("enchantment.level." + 1));
     }
