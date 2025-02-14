@@ -3,7 +3,7 @@
   "id": "max-level-info",
   "version": "${version}",
   "name": "Max Level Info",
-  "description": "Shows max enchantment level (e.g. Sharpness II / V)",
+  "description": "Shows max enchantment & potion effect level (e.g. Sharpness II / V, or Bad Omen I / V)",
   "authors": ["artginzburg"],
   "contact": {
     "homepage": "https://modrinth.com/mod/max-level-info",
