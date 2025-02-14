@@ -2,7 +2,6 @@ package art.ginzburg.maxlevelinfo.mixin.client;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -30,8 +29,7 @@ import java.util.function.Consumer;
 @Mixin(PotionContentsComponent.class)
 public class PotionContentsComponentMixin {
 
-  @Inject(target = @Desc(value = "buildTooltip", args = { Consumer.class, float.class,
-      float.class }), at = @At("HEAD"), cancellable = true)
+  @Inject(method = "buildTooltip(Ljava/util/function/Consumer;FF)V", at = @At("HEAD"), cancellable = true)
   private void overrideBuildTooltip(Consumer<Text> textConsumer, float durationMultiplier, float tickRate,
       CallbackInfo ci) {
     Optional<RegistryEntry<Potion>> potionOptional = ((PotionContentsComponent) (Object) this).potion();
@@ -43,8 +41,7 @@ public class PotionContentsComponentMixin {
         potionOptional.get().value().getBaseName(), false);
   }
 
-  @Inject(target = @Desc(value = "buildTooltip", args = { Iterable.class, Consumer.class, float.class,
-      float.class }), at = @At("HEAD"), cancellable = true)
+  @Inject(method = "buildTooltip(Ljava/lang/Iterable;Ljava/util/function/Consumer;FF)V", at = @At("HEAD"), cancellable = true)
   private static void overrideStaticBuildTooltip(Iterable<StatusEffectInstance> effects, Consumer<Text> textConsumer,
       float durationMultiplier, float tickRate, CallbackInfo ci) {
     if (effects.iterator().hasNext()
