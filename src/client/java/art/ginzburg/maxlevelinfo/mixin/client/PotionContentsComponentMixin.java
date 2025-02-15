@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 
 @Mixin(PotionContentsComponent.class)
 public class PotionContentsComponentMixin {
+  private static final Text NONE_TEXT = Text.translatable("effect.none").formatted(Formatting.GRAY);
 
   @Inject(method = "buildTooltip(Ljava/util/function/Consumer;FF)V", at = @At("HEAD"), cancellable = true)
   private void overrideBuildTooltip(Consumer<Text> textConsumer, float durationMultiplier, float tickRate,
@@ -70,6 +71,7 @@ public class PotionContentsComponentMixin {
     Optional<Potion> potionLongVersion = getPotionVersion("long_" + potionOriginalName);
     Optional<Potion> potionStrongVersion = getPotionVersion("strong_" + potionOriginalName);
 
+    // `bl` in Yarn mappings
     boolean isEmpty = true;
 
     for (StatusEffectInstance effect : effects) {
@@ -104,7 +106,7 @@ public class PotionContentsComponentMixin {
     }
 
     if (isEmpty) {
-      textConsumer.accept(Text.translatable("effect.none").formatted(Formatting.GRAY));
+      textConsumer.accept(NONE_TEXT);
     }
 
   }
