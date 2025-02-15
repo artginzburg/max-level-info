@@ -20,8 +20,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.lang.reflect.Method;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -49,12 +47,10 @@ public class PotionContentsComponentMixin {
       modifyPotionTooltip(effects, textConsumer, durationMultiplier, tickRate, ci, "", true);
   }
 
-  @SuppressWarnings("unchecked")
   private Iterable<StatusEffectInstance> getPotionEffects() {
     try {
-      Method getEffectsMethod = PotionContentsComponent.class.getDeclaredMethod("getEffects");
-      getEffectsMethod.setAccessible(true);
-      return (Iterable<StatusEffectInstance>) getEffectsMethod.invoke(this);
+      PotionContentsComponent self = (PotionContentsComponent) (Object) this;
+      return self.getEffects();
     } catch (Exception e) {
       e.printStackTrace();
       return List.of();
