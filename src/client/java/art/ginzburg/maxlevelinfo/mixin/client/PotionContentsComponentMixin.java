@@ -13,12 +13,13 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffectUtil;
 
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.Potions;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,13 +58,8 @@ public class PotionContentsComponentMixin {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private static RegistryEntry<Potion> getPotionVersion(String potionKey) {
-    try {
-      return (RegistryEntry<Potion>) Potions.class.getDeclaredField(potionKey).get(null);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      return null;
-    }
+  private static Optional<Potion> getPotionVersion(String potionKey) {
+    return Registries.POTION.getOptionalValue(Identifier.ofVanilla(potionKey.toLowerCase()));
   }
 
   private static void modifyPotionTooltip(Iterable<StatusEffectInstance> effects, Consumer<Text> textConsumer,
@@ -71,8 +67,8 @@ public class PotionContentsComponentMixin {
       String potionOriginalName, boolean isBadOmen) {
     ci.cancel();
 
-    RegistryEntry<Potion> potionLongVersion = getPotionVersion("LONG_" + potionOriginalName.toUpperCase());
-    RegistryEntry<Potion> potionStrongVersion = getPotionVersion("STRONG_" + potionOriginalName.toUpperCase());
+    Optional<Potion> potionLongVersion = getPotionVersion("long_" + potionOriginalName);
+    Optional<Potion> potionStrongVersion = getPotionVersion("strong_" + potionOriginalName);
 
     boolean isEmpty = true;
 
@@ -81,7 +77,7 @@ public class PotionContentsComponentMixin {
       MutableText effectText = Text.translatable(effect.getTranslationKey());
       RegistryEntry<StatusEffect> registryEntry = effect.getEffectType();
 
-      if (potionLongVersion != null) {
+      if (potionLongVersion.isPresent()) {
         effectText.append(Text.literal(isEffectProlonged(effect, potionLongVersion) ? "+" : "-"));
       }
 
@@ -94,7 +90,8 @@ public class PotionContentsComponentMixin {
         appendBadOmenInfo(effect, effectText);
       }
 
-      if (potionStrongVersion != null && !isEffectStrong(effect, potionStrongVersion) && effect.getAmplifier() == 0) {
+      if (potionStrongVersion.isPresent() && !isEffectStrong(effect, potionStrongVersion)
+          && effect.getAmplifier() == 0) {
         effectText.append(Text.literal(" I"));
       }
 
@@ -112,13 +109,13 @@ public class PotionContentsComponentMixin {
 
   }
 
-  private static boolean isEffectProlonged(StatusEffectInstance effect, RegistryEntry<Potion> potionLongVersion) {
-    return potionLongVersion.value().getEffects().stream()
+  private static boolean isEffectProlonged(StatusEffectInstance effect, Optional<Potion> potionLongVersion) {
+    return potionLongVersion.get().getEffects().stream()
         .anyMatch(e -> e.getEffectType() == effect.getEffectType() && e.getDuration() == effect.getDuration());
   }
 
-  private static boolean isEffectStrong(StatusEffectInstance effect, RegistryEntry<Potion> potionStrongVersion) {
-    return potionStrongVersion.value().getEffects().stream()
+  private static boolean isEffectStrong(StatusEffectInstance effect, Optional<Potion> potionStrongVersion) {
+    return potionStrongVersion.get().getEffects().stream()
         .anyMatch(e -> e.getEffectType() == effect.getEffectType() && e.getAmplifier() == effect.getAmplifier());
   }
 
