@@ -1,8 +1,5 @@
-package art.ginzburg.maxlevelinfo.mixin.client;
+package art.ginzburg.maxlevelinfo.util;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Lists;
@@ -16,7 +13,6 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffectUtil;
-
 import net.minecraft.potion.Potion;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -30,33 +26,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-@Mixin(PotionContentsComponent.class)
-public class PotionContentsComponentMixin {
+public final class PotionContentsComponentUtil {
   private static final Text NONE_TEXT = Text.translatable("effect.none").formatted(Formatting.GRAY);
 
-  @Inject(method = "buildTooltip(Ljava/util/function/Consumer;FF)V", at = @At("HEAD"), cancellable = true)
-  private void overrideBuildTooltip(Consumer<Text> textConsumer, float durationMultiplier, float tickRate,
-      CallbackInfo ci) {
-    Optional<RegistryEntry<Potion>> potionOptional = ((PotionContentsComponent) (Object) this).potion();
-
-    if (potionOptional.isEmpty())
-      return;
-
-    modifyPotionTooltip(getPotionEffects(), textConsumer, durationMultiplier, tickRate, ci,
-        potionOptional.get().value().getBaseName(), false);
-  }
-
-  @Inject(method = "buildTooltip(Ljava/lang/Iterable;Ljava/util/function/Consumer;FF)V", at = @At("HEAD"), cancellable = true)
-  private static void overrideStaticBuildTooltip(Iterable<StatusEffectInstance> effects, Consumer<Text> textConsumer,
-      float durationMultiplier, float tickRate, CallbackInfo ci) {
-    if (effects.iterator().hasNext()
-        && effects.iterator().next().getTranslationKey().equalsIgnoreCase("effect.minecraft.bad_omen"))
-      modifyPotionTooltip(effects, textConsumer, durationMultiplier, tickRate, ci, "", true);
-  }
-
-  private Iterable<StatusEffectInstance> getPotionEffects() {
+  public Iterable<StatusEffectInstance> getPotionEffects(PotionContentsComponent self) {
     try {
-      PotionContentsComponent self = (PotionContentsComponent) (Object) this;
       return self.getEffects();
     } catch (Exception e) {
       e.printStackTrace();
@@ -68,7 +42,7 @@ public class PotionContentsComponentMixin {
     return Registries.POTION.getOptionalValue(Identifier.ofVanilla(potionKey.toLowerCase()));
   }
 
-  private static void modifyPotionTooltip(Iterable<StatusEffectInstance> effects, Consumer<Text> textConsumer,
+  public static void modifyPotionTooltip(Iterable<StatusEffectInstance> effects, Consumer<Text> textConsumer,
       float durationMultiplier, float tickRate, CallbackInfo ci,
       String potionOriginalName, boolean isBadOmen) {
     List<Pair<RegistryEntry<EntityAttribute>, EntityAttributeModifier>> list = Lists

@@ -4,10 +4,13 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "EnchantmentMixin",
-    "PotionContentsComponentMixin",
-    "StatusEffectsDisplayMixin"
+    "StatusEffectsDisplayMixin",
+    "PotionContentsComponentMixinCommon",
+    "PotionContentsComponentMixin1_21_2",
+    "PotionContentsComponentMixin1_21_5"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "plugin": "art.ginzburg.maxlevelinfo.mixin.plugins.MyMixinConfigPlugin"
 }
