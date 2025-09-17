@@ -7,7 +7,8 @@
     "StatusEffectsDisplayMixin",
     "PotionContentsComponentMixinCommon",
     "PotionContentsComponentMixin1_21_2",
-    "PotionContentsComponentMixin1_21_5"
+    "PotionContentsComponentMixin1_21_5",
+    "ButtonWidgetMixin"
   ],
   "injectors": {
     "defaultRequire": 1
